@@ -34,7 +34,6 @@ union align {
   void (*fp)(void);
   float f;
   double d;
-  long double ld;
 };
 
 union header {
