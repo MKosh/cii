@@ -1,15 +1,20 @@
-#include <limits.h>
+#include <stdlib.h>
 #include <stddef.h>
-#include "mem.h"
+#include <limits.h>
 #include "assert.h"
 #include "table.h"
+#include "mem.h"
 
-struct Table {
-  i32 size;
-  i32 length;
-  u32 timestamp;
-  i32 (*cmp)(const void* x, const void* y);
-  u64 (*hash)(const void* key);
+#define T Table_T
+
+////////////////////////////////////////////////////////////////////////////////
+/// Types
+struct T {
+  int size;
+  int length;
+  unsigned timestamp;
+  int (*cmp)(const void* x, const void* y);
+  unsigned (*hash)(const void* key);
 
   struct binding {
     struct binding* link;
@@ -18,38 +23,46 @@ struct Table {
   }** buckets;
 };
 
-static i32 cmpatom(const void* x, const void* y)
-{
+/// Types
+////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
+/// Static functions
+
+static int cmpatom(const void* x, const void* y) {
   return x != y;
 }
 
-static u64 hashatom(const void* key)
-{
-  return (u64)key>>2;
+static unsigned hashatom(const void* key) {
+  return (unsigned long)key >> 2;
 }
+
+/// Static functions
+////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
+/// Functions
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
-Table* table_new(i32 hint, i32 cmp(const void* x, const void* y), u64 hash(const void* key))
+T Table_new(int hint, int cmp(const void* x, const void* y), unsigned hash(const void* key))
 {
-  Table* table;
-  i32 i;
-
-  static i32 primes[] = { 509, 509, 1021, 2053, 4093, 8191, 16381, 32771, 65521, INT_MAX};
+  T table;
+  int i;
+  static int primes[] = {509, 509, 1021, 2053, 4093, 8191, 16381, 32771, 65521, INT_MAX};
 
   assert(hint >= 0);
-
-  for (i = 1; primes[i] < hint; i++) {}
+  for (i = 1; primes[i] < hint; i++);
   table = ALLOC(sizeof(*table) + primes[i-1] * sizeof(table->buckets[0]));
+
   table->size = primes[i-1];
-  table->cmp = cmp ? cmp : cmpatom;
+  table->cmp  = cmp  ? cmp : cmpatom;
   table->hash = hash ? hash : hashatom;
   table->buckets = (struct binding**)(table + 1);
 
   for (i = 0; i < table->size; i++) {
     table->buckets[i] = NULL;
   }
-
   table->length = 0;
   table->timestamp = 0;
 
@@ -58,21 +71,19 @@ Table* table_new(i32 hint, i32 cmp(const void* x, const void* y), u64 hash(const
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
-void table_free (Table** table);
+void table_free (T* table);
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
-i32 table_length(Table* table)
-{
+int Table_length(T table) {
   assert(table);
   return table->length;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
-void* table_put(Table* table, const void* key, void* value)
-{
-  i32 i;
+void* Table_put(T table, const void* key, void* value) {
+  int i;
   struct binding* p;
   void* prev;
 
@@ -80,6 +91,7 @@ void* table_put(Table* table, const void* key, void* value)
   assert(key);
   /* search table for key */
   i = (*table->hash)(key) % table->size;
+
   for (p = table->buckets[i]; p; p = p->link) {
     if ((*table->cmp)(key, p->key) == 0) {
       break;
@@ -104,13 +116,13 @@ void* table_put(Table* table, const void* key, void* value)
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
-void*  table_get    (Table* table, const void* key)
-{
-  i32 i;
+void* Table_get(T table, const void* key) {
+  int i;
   struct binding* p;
   assert(table);
   assert(key);
-  /* search table for key */
+
+  /* Search table for key */
   i = (*table->hash)(key)%table->size;
   for (p = table->buckets[i]; p; p = p->link) {
     if ((*table->cmp)(key, p->key) == 0) {
@@ -123,12 +135,25 @@ void*  table_get    (Table* table, const void* key)
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
-void*  table_remove (Table* table, const void* key);
+void*  table_remove(T* table, const void* key);
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
-void   table_map    (Table* table, void apply(const void* key, void** value, void* cl), void* cl);
+void   table_map(T* table, void apply(const void* key, void** value, void* cl), void* cl);
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
-void** table_toArray(Table* table, void* end);
+void** table_toArray(T* table, void* end);
+static void vfree(const void* key, void** value, void* cl) {
+  FREE(*value);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+///
+void Table_dealloc(T* table) {
+  Table_map(*table, vfree, NULL);
+  Table_free(table);
+}
+
+/// Functions
+////////////////////////////////////////////////////////////////////////////////

@@ -1,14 +1,20 @@
 #pragma once
 
-#include "types.h"
+#define T Table_T
+typedef struct T* T;
 
-typedef struct Table Table;
- 
-extern Table* table_new    (i32 hint, i32 cmp(const void* x, const void* y), u64 hash(const void* key));
-extern void   table_free   (Table** table);
-extern i32    table_length (Table* table);
-extern void*  table_put    (Table* table, const void* key, void* value);
-extern void*  table_get    (Table* table, const void* key);
-extern void*  table_remove (Table* table, const void* key);
-extern void   table_map    (Table* table, void apply(const void* key, void** value, void* cl), void* cl);
-extern void** table_toArray(Table* table, void* end);
+////////////////////////////////////////////////////////////////////////////////
+/// Exported functions
+extern T      Table_new(int hint, int cmp(const void* x, const void* y), unsigned hash (const void* key));
+extern void   Table_free(T* table);
+extern int    Table_length(T table);
+extern void*  Table_put(T table, const void* key, void* value);
+extern void*  Table_get(T table, const void* key);
+extern void*  Table_remove(T table, const void* key);
+extern void   Table_map(T table, void apply(const void* key, void** value, void* cl), void* cl);
+extern void** Table_toArray(T table, void* end);
+extern void   Table_dealloc(T* table);
+/// Exported functions
+////////////////////////////////////////////////////////////////////////////////
+
+#undef T
