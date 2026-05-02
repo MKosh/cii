@@ -1,6 +1,6 @@
 add_executable(test test.c)
 
-add_library(cii stack.c arena.c atom.c assert.c except.c mem.c types.c)
+add_library(cii stack.c arena.c atom.c assert.c except.c mem.c types.c list.c)
 
 target_compile_definitions(test PUBLIC
   "$<$<CONFIG:DEBUG>:DEBUG>"

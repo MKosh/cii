@@ -74,3 +74,12 @@ void* mem_resize(void* ptr, long nbytes, const char* file, int line)
 
   return ptr;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+///
+void mem_free(void* ptr, const char* file, int line)
+{
+  if (ptr) {
+    free(ptr);
+  }
+}

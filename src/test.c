@@ -5,6 +5,7 @@
 #include "except.h"
 #include "mem.h"
 #include "arena.h"
+#include "list.h"
 
 void throw(void)
 {
@@ -13,14 +14,13 @@ void throw(void)
 
 int main(int argc, char *argv[])
 {
-  printf("Hello world\n");
-  Arena_t allocator = arena_new();
-  // int* x = arena_alloc(allocator, sizeof(int), __FILE__, __LINE__);
-  int* x = AALLOC(allocator, sizeof(int));
+  printf("Starting.\n");
 
-  *x = 5;
-  printf("x = %d\n", *x);
+  List_t p1 = list_list("Atom", "Mem", NULL);
 
-  arena_dispose(&allocator);
+  list_free(&p1);
+
+  printf("Done.\n");
+
   return EXIT_SUCCESS;
 }

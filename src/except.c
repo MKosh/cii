@@ -25,8 +25,3 @@ void except_raise(const T* e, const char* file, int line)
   longjmp(p->env, EXCEPT_RAISED);
 }
 
-int add(int a, int b)
-{
-  return a + b;
-}
-
